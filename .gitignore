@@ -1,2 +1,15 @@
-*.DAT
+# Ignore compiler intermediate and output files
+*.int
+*.gnt
+*.lst
+*.obj
 *.exe
+*.bin
+
+# Ignore listing files and logs
+*.log
+*.prt
+
+# OS specific
+.DS_Store
+Thumbs.db

@@ -2,7 +2,7 @@
        PROGRAM-ID. PROJECT.
        AUTHOR. GROUP 4: ANDADOR, LIPATA, LOPEZ, and CRUZ. DIT 2-1.
        ENVIRONMENT DIVISION.
-       INPUT-OUTPUT SECTION.
+       INPUT-OUTPUT SECTION.   
        FILE-CONTROL.
            SELECT P-PRODUCTS-FILE ASSIGN TO "PRODUCTS.DAT"
       *            INDEXED file (binary format, for faster search)
@@ -120,7 +120,7 @@
            DISPLAY "| 6. Reset Products Database                     |".
            DISPLAY "|                                                |".
            DISPLAY "| 9. Exit                                        |".
-           DISPLAY "=================================================="
+           DISPLAY "==================================================".
            DISPLAY "Please select an option: " WITH NO ADVANCING.
            ACCEPT MAIN-CHOICE.
 
