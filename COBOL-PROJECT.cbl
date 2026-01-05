@@ -1,6 +1,6 @@
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PROJECT.
-       AUTHOR. GROUP 4: ANDADOR, LIPATA, LOPEZ, CRUZ. DIT 2-1.
+       AUTHOR. GROUP 4: ANDADOR, LIPATA, LOPEZ, andCRUZ. DIT 2-1.
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
@@ -237,7 +237,7 @@
            END-IF. 
 
        UPDATE-PRODUCT-MENU.
-           PERFORM STOCK-DISPLAY
+           PERFORM STOCK-DISPLAY.
            DISPLAY SPACE.
            DISPLAY "=================================================="
            DISPLAY "                  UPDATE PRODUCT"
@@ -859,4 +859,3 @@
            DISPLAY SPACE.
            STOP RUN.
            STOP RUN.
-
