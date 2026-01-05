@@ -82,4 +82,4 @@ This system provides a comprehensive suite for retail operations, including real
 ### Compilation
 Open your terminal and run:
 ```bash
-cobc -x -o inventory PROJECT.CBL
+cobc -x -o inventory PROJECT.CBL# Inventory-and-Sales-Management-System
