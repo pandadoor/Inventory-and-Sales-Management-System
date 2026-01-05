@@ -5,6 +5,7 @@
 *.obj
 *.exe
 *.bin
+*.dat
 
 # Ignore listing files and logs
 *.log
