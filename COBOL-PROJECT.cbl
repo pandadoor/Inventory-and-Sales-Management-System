@@ -1,6 +1,6 @@
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PROJECT.
-       AUTHOR. GROUP 4: ANDADOR, LIPATA, LOPEZ, andCRUZ. DIT 2-1.
+       AUTHOR. GROUP 4: ANDADOR, LIPATA, LOPEZ, and CRUZ. DIT 2-1.
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
@@ -42,13 +42,9 @@
        01  MAIN-CHOICE                 PIC S9(9).
        01  P-UPDATE-CHOICE             PIC S9(9).
        01  IS-CHOICE                   PIC S9(9).
-       01  DP-CONTINUEE                PIC A(9).
-       01  ADDPRODCHOICE               PIC A(9).
        01  RESET-SALES                 PIC A.
        01  RESET-PRODUCTS              PIC A.
-       01  CONTINUE-ANOTHER                PIC A.
-       01  CONTINUE-EDIT               PIC A.
-       01  CONTINUE-DELETE             PIC A.
+       01  CONTINUE-ANOTHER            PIC A.
        01  CONTINUE-SALE               PIC A.
 
        01  WS-FIELD-INFO.
