@@ -236,7 +236,7 @@
            PERFORM STOCK-DISPLAY.
            DISPLAY SPACE.
            DISPLAY "=================================================="
-           DISPLAY "                  UPDATE PRODUCT"
+           DISPLAY "        20          UPDATE PRODUCT"
            DISPLAY "--------------------------------------------------"
            DISPLAY "1. Delete Product"
            DISPLAY "2. Update Product Details"
@@ -427,10 +427,11 @@
 
            PERFORM INITIALIZATION
            DISPLAY SPACE
-           DISPLAY "Product ID         : " P-PRODUCT-ID
+           DISPLAY "Product ID         : " FUNCTION TRIM(P-PRODUCT-ID)
            DISPLAY "Product Name       : " P-PRODUCT-NAME
-           DISPLAY "Available Stock    : " DF-PSTOCK
-           DISPLAY "Unit Price         : ₱" DF-PCOST-PER-UNIT
+           DISPLAY "Available Stock    : " FUNCTION TRIM(DF-PSTOCK)
+           DISPLAY "Unit Price         : ₱"                             - 
+           FUNCTION TRIM(DF-PCOST-PER-UNIT)
            DISPLAY SPACE
            DISPLAY "Enter Sold Units: " WITH NO ADVANCING
            ACCEPT I-SOLD-UNITS
@@ -469,12 +470,12 @@
            REWRITE P-PRODUCTS-RECORD
 
       *                        Build sales record
-           MOVE P-PRODUCT-ID    TO S-PRODUCT-ID
-           MOVE P-PRODUCT-NAME  TO S-PRODUCT-NAME
-           MOVE I-SOLD-UNITS   TO S-SOLD-UNITS
-           MOVE P-UNIT-PRICE    TO S-UNIT-PRICE
-           MOVE CF-SALE-AMOUNT  TO S-TOTAL-AMOUNT
-           MOVE CF-COST-AMOUNT  TO S-COST-OF-GOODS
+           MOVE P-PRODUCT-ID TO S-PRODUCT-ID
+           MOVE P-PRODUCT-NAME TO S-PRODUCT-NAME
+           MOVE I-SOLD-UNITS TO S-SOLD-UNITS
+           MOVE P-UNIT-PRICE TO S-UNIT-PRICE
+           MOVE CF-SALE-AMOUNT TO S-TOTAL-AMOUNT
+           MOVE CF-COST-AMOUNT TO S-COST-OF-GOODS
            MOVE CF-PROFIT-AMOUNT TO S-PROFIT
            MOVE DATE-DISPLAY TO S-SALE-DATE
 
@@ -489,10 +490,13 @@
            ELSE
                DISPLAY "Sale recorded successfully!"
                MOVE CF-SALE-AMOUNT TO DF-DISP-AMOUNT
-               DISPLAY "Total Sale Amount: ₱ " DF-DISP-AMOUNT
+               DISPLAY "Total Sale Amount  : ₱ "                        -
+               FUNCTION TRIM(DF-DISP-AMOUNT)
                MOVE CF-PROFIT-AMOUNT TO DF-DISP-AMOUNT
-               DISPLAY "Profit: ₱ " DF-DISP-AMOUNT
-               DISPLAY "Remaining Stock: " DF-PSTOCK
+               DISPLAY "Profit             : ₱ "                        - 
+               FUNCTION TRIM(DF-DISP-AMOUNT)
+               DISPLAY "Remaining Stock    : "                          - 
+               FUNCTION TRIM(DF-PSTOCK)
            END-IF
            CLOSE S-SALES-FILE
 
@@ -590,19 +594,19 @@
            DISPLAY "=================================================="
            
            MOVE DT-TOTAL-PRODUCTS TO DF-DISP-QTY
-           DISPLAY "Total Products: " DF-DISP-QTY
+           DISPLAY "Total Products: " FUNCTION TRIM(DF-DISP-QTY)
            
            MOVE DT-TOTAL-STOCK TO DF-DISP-QTY
-           DISPLAY "Total Stock Units: " DF-DISP-QTY
+           DISPLAY "Total Stock Units: " FUNCTION TRIM(DF-DISP-QTY)
            
            MOVE DT-TOTAL-REVENUE TO DF-DISP-AMOUNT
-           DISPLAY "Total Revenue: ₱ " DF-DISP-AMOUNT
+           DISPLAY "Total Revenue: ₱ " FUNCTION TRIM(DF-DISP-AMOUNT)
            
            MOVE DT-TOTAL-PROFIT TO DF-DISP-AMOUNT
-           DISPLAY "Total Profit: ₱ " DF-DISP-AMOUNT
+           DISPLAY "Total Profit: ₱ " FUNCTION TRIM(DF-DISP-AMOUNT)
            
            MOVE DT-TOTAL-QTY-SOLD TO DF-DISP-QTY
-           DISPLAY "Total Units Sold: " DF-DISP-QTY
+           DISPLAY "Total Units Sold: " FUNCTION TRIM(DF-DISP-QTY)
            
            IF DT-TOTAL-REVENUE > ZERO
                COMPUTE DT-PROFIT-MARGIN = 
