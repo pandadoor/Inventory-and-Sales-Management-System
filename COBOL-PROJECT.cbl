@@ -39,9 +39,6 @@
            05  S-SALE-DATE             PIC S9(8).
 
        WORKING-STORAGE SECTION.
-       01  WS-OS-NAME                  PIC X(50).
-       01  WS-CLEAR-COMMAND                PIC X(10). 
-
        01  MAIN-CHOICE                 PIC S9(9).
        01  P-UPDATE-CHOICE             PIC S9(9).
        01  IS-CHOICE                   PIC S9(9).
@@ -239,7 +236,7 @@
            PERFORM STOCK-DISPLAY.
            DISPLAY SPACE.
            DISPLAY "=================================================="
-           DISPLAY "                  UPDATE PRODUCT"
+           DISPLAY "        20          UPDATE PRODUCT"
            DISPLAY "--------------------------------------------------"
            DISPLAY "1. Delete Product"
            DISPLAY "2. Update Product Details"
@@ -341,81 +338,49 @@
            DISPLAY "==========================================="
            DISPLAY SPACES
            
-           
-           DISPLAY "Enter new Stock quantity (empty to skip): "
+           DISPLAY "Enter new Product Name (empty to skip): "
            WITH NO ADVANCING
            ACCEPT I-PRODUCT-NAME
-
-           IF I-PRODUCT-NAME = SPACES
-               CONTINUE
-           ELSE
-               IF FUNCTION NUMVAL(I-PRODUCT-NAME) <= 0
-                   PERFORM SHOW-VALIDATION-ERROR
-                   IF USER-CANCELLED
-                       PERFORM CLEAR-SCREEN
-                       DISPLAY "                Cancelled."
-                       PERFORM UPDATE-PRODUCT-MENU
-                   END-IF
-               ELSE
-                   MOVE I-PRODUCT-NAME TO P-PRODUCT-NAME
-               END-IF
+           IF FUNCTION STORED-CHAR-LENGTH(I-PRODUCT-NAME) > 2
+               MOVE I-PRODUCT-NAME TO P-PRODUCT-NAME
            END-IF
 
-           DISPLAY "Enter new Stock quantity (empty to skip): "
+           DISPLAY "Enter new Cost Per Unit (empty to skip): "
            WITH NO ADVANCING
            ACCEPT I-COST-PER-UNI
-
-           IF I-COST-PER-UNI = SPACES
-               CONTINUE
-           ELSE
-               IF FUNCTION NUMVAL(I-COST-PER-UNI) <= 0
+           IF FUNCTION NUMVAL(I-COST-PER-UNI) <= 0
+               IF FUNCTION STORED-CHAR-LENGTH(I-COST-PER-UNI) <= 0
                    PERFORM SHOW-VALIDATION-ERROR
-                   IF USER-CANCELLED
-                       PERFORM CLEAR-SCREEN
-                       DISPLAY "                Cancelled."
-                       PERFORM UPDATE-PRODUCT-MENU
-                   END-IF
-               ELSE
-                   MOVE I-COST-PER-UNI TO P-COST-PER-UNIT
                END-IF
+           ELSE 
+               MOVE I-COST-PER-UNI TO P-COST-PER-UNIT
            END-IF
            
-           DISPLAY "Enter new Stock quantity (empty to skip): "
+           DISPLAY "Enter new Unit Price (empty to skip): "
            WITH NO ADVANCING
            ACCEPT I-UNIT-PRICE
-
-           IF I-UNIT-PRICE = SPACES
-               CONTINUE
-           ELSE
-               IF FUNCTION NUMVAL(I-UNIT-PRICE) <= 0
+           IF FUNCTION NUMVAL(I-UNIT-PRICE) <= 0
+               IF FUNCTION STORED-CHAR-LENGTH(I-UNIT-PRICE) < 0
                    PERFORM SHOW-VALIDATION-ERROR
-                   IF USER-CANCELLED
-                       PERFORM CLEAR-SCREEN
-                       DISPLAY "                Cancelled."
-                       PERFORM UPDATE-PRODUCT-MENU
-                   END-IF
-               ELSE
-                   MOVE I-UNIT-PRICE TO P-UNIT-PRICE
                END-IF
+           ELSE 
+               MOVE I-UNIT-PRICE TO P-UNIT-PRICE
            END-IF
  
            DISPLAY "Enter new Stock quantity (empty to skip): "
            WITH NO ADVANCING
            ACCEPT I-STOCK
-
-           IF I-STOCK = SPACES
-               CONTINUE
-           ELSE
-               IF FUNCTION NUMVAL(I-STOCK) <= 0
+           IF FUNCTION NUMVAL(I-STOCK) <= 0
+               IF FUNCTION STORED-CHAR-LENGTH(I-STOCK) < 0
                    PERFORM SHOW-VALIDATION-ERROR
                    IF USER-CANCELLED
                        PERFORM CLEAR-SCREEN
                        DISPLAY "                Cancelled."
                        PERFORM UPDATE-PRODUCT-MENU
                    END-IF
-               ELSE
-                   MOVE I-STOCK TO P-STOCK
                END-IF
+           ELSE 
+               MOVE I-STOCK TO P-STOCK
            END-IF
 
            REWRITE P-PRODUCTS-RECORD
@@ -755,10 +720,11 @@
                    CALL "SYSTEM" USING "rm SALES.DAT"
                END-IF
                DISPLAY "Database have been reset sucessfully."
-               PERFORM MENU-MAIN
-           ELSE 
-               PERFORM MENU-MAIN
-           END-IF. 
+                   PERFORM MENU-MAIN
+               ELSE 
+                   PERFORM MENU-MAIN
+           END-IF.
+           EXIT PARAGRAPH.
 
        PRODUCTS-RESET.
            PERFORM DISPLAY-DASHBOARD
@@ -776,10 +742,11 @@
                    CALL "SYSTEM" USING "rm PRODUCTS.DAT"
                END-IF
                DISPLAY "Database have been reset sucessfully."
-               PERFORM MENU-MAIN
-           ELSE 
-               PERFORM MENU-MAIN
+                   PERFORM MENU-MAIN
+               ELSE 
+                   PERFORM MENU-MAIN
            END-IF.
+           EXIT PARAGRAPH.
        
        GET-NUMERIC-INPUT.
            MOVE 'N' TO WS-IS-VALID
@@ -882,11 +849,10 @@
        CLEAR-SCREEN.
            ACCEPT WS-OS-NAME FROM ENVIRONMENT "OS"
            IF WS-OS-NAME = "Windows_NT"
-               MOVE "cls" TO WS-CLEAR-COMMAND
+               CALL "SYSTEM" USING "cls"
            ELSE 
-               MOVE "clear" TO WS-CLEAR-COMMAND
-           END-IF
-           CALL "SYSTEM" USING WS-CLEAR-COMMAND
+               CALL "SYSTEM" USING "clear"
+           END-IF.
            EXIT PARAGRAPH.
 
        PROG-TERMINATE.
