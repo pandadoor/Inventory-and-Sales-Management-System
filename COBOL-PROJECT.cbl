@@ -236,7 +236,7 @@
            PERFORM STOCK-DISPLAY.
            DISPLAY SPACE.
            DISPLAY "=================================================="
-           DISPLAY "        20          UPDATE PRODUCT"
+           DISPLAY "                  UPDATE PRODUCT"
            DISPLAY "--------------------------------------------------"
            DISPLAY "1. Delete Product"
            DISPLAY "2. Update Product Details"
@@ -338,49 +338,81 @@
            DISPLAY "==========================================="
            DISPLAY SPACES
            
-           DISPLAY "Enter new Product Name (empty to skip): "
-           WITH NO ADVANCING
-           ACCEPT I-PRODUCT-NAME
-           IF FUNCTION STORED-CHAR-LENGTH(I-PRODUCT-NAME) > 2
-               MOVE I-PRODUCT-NAME TO P-PRODUCT-NAME
-           END-IF
-
-           DISPLAY "Enter new Cost Per Unit (empty to skip): "
-           WITH NO ADVANCING
-           ACCEPT I-COST-PER-UNI
-           IF FUNCTION NUMVAL(I-COST-PER-UNI) <= 0
-               IF FUNCTION STORED-CHAR-LENGTH(I-COST-PER-UNI) <= 0
-                   PERFORM SHOW-VALIDATION-ERROR
-               END-IF
-           ELSE 
-               MOVE I-COST-PER-UNI TO P-COST-PER-UNIT
-           END-IF
            
-           DISPLAY "Enter new Unit Price (empty to skip): "
-           WITH NO ADVANCING
-           ACCEPT I-UNIT-PRICE
-           IF FUNCTION NUMVAL(I-UNIT-PRICE) <= 0
-               IF FUNCTION STORED-CHAR-LENGTH(I-UNIT-PRICE) < 0
-                   PERFORM SHOW-VALIDATION-ERROR
-               END-IF
-           ELSE 
-               MOVE I-UNIT-PRICE TO P-UNIT-PRICE
-           END-IF
- 
            DISPLAY "Enter new Stock quantity (empty to skip): "
            WITH NO ADVANCING
-           ACCEPT I-STOCK
-           IF FUNCTION NUMVAL(I-STOCK) <= 0
-               IF FUNCTION STORED-CHAR-LENGTH(I-STOCK) < 0
+           ACCEPT I-PRODUCT-NAME
+
+           IF I-PRODUCT-NAME = SPACES
+               CONTINUE
+           ELSE
+               IF FUNCTION NUMVAL(I-PRODUCT-NAME) <= 0
                    PERFORM SHOW-VALIDATION-ERROR
                    IF USER-CANCELLED
                        PERFORM CLEAR-SCREEN
                        DISPLAY "                Cancelled."
                        PERFORM UPDATE-PRODUCT-MENU
                    END-IF
+               ELSE
+                   MOVE I-PRODUCT-NAME TO P-PRODUCT-NAME
                END-IF
-           ELSE 
-               MOVE I-STOCK TO P-STOCK
+           END-IF
+
+           DISPLAY "Enter new Stock quantity (empty to skip): "
+           WITH NO ADVANCING
+           ACCEPT I-COST-PER-UNI
+
+           IF I-COST-PER-UNI = SPACES
+               CONTINUE
+           ELSE
+               IF FUNCTION NUMVAL(I-COST-PER-UNI) <= 0
+                   PERFORM SHOW-VALIDATION-ERROR
+                   IF USER-CANCELLED
+                       PERFORM CLEAR-SCREEN
+                       DISPLAY "                Cancelled."
+                       PERFORM UPDATE-PRODUCT-MENU
+                   END-IF
+               ELSE
+                   MOVE I-COST-PER-UNI TO P-COST-PER-UNIT
+               END-IF
+           END-IF
+           
+           DISPLAY "Enter new Stock quantity (empty to skip): "
+           WITH NO ADVANCING
+           ACCEPT I-UNIT-PRICE
+
+           IF I-UNIT-PRICE = SPACES
+               CONTINUE
+           ELSE
+               IF FUNCTION NUMVAL(I-UNIT-PRICE) <= 0
+                   PERFORM SHOW-VALIDATION-ERROR
+                   IF USER-CANCELLED
+                       PERFORM CLEAR-SCREEN
+                       DISPLAY "                Cancelled."
+                       PERFORM UPDATE-PRODUCT-MENU
+                   END-IF
+               ELSE
+                   MOVE I-UNIT-PRICE TO P-UNIT-PRICE
+               END-IF
+           END-IF
+ 
+           DISPLAY "Enter new Stock quantity (empty to skip): "
+           WITH NO ADVANCING
+           ACCEPT I-STOCK
+
+           IF I-STOCK = SPACES
+               CONTINUE
+           ELSE
+               IF FUNCTION NUMVAL(I-STOCK) <= 0
+                   PERFORM SHOW-VALIDATION-ERROR
+                   IF USER-CANCELLED
+                       PERFORM CLEAR-SCREEN
+                       DISPLAY "                Cancelled."
+                       PERFORM UPDATE-PRODUCT-MENU
+                   END-IF
+               ELSE
+                   MOVE I-STOCK TO P-STOCK
+               END-IF
            END-IF
 
            REWRITE P-PRODUCTS-RECORD
