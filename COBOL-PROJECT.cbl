@@ -39,6 +39,9 @@
            05  S-SALE-DATE             PIC S9(8).
 
        WORKING-STORAGE SECTION.
+       01  WS-OS-NAME                  PIC X(50).
+       01  WS-CLEAR-COMMAND                PIC X(10). 
+
        01  MAIN-CHOICE                 PIC S9(9).
        01  P-UPDATE-CHOICE             PIC S9(9).
        01  IS-CHOICE                   PIC S9(9).
@@ -744,15 +747,16 @@
            DISPLAY "Enter Choice: " WITH NO ADVANCING
            ACCEPT RESET-SALES
 
-           IF RESET-SALES = 'Y' OR RESET-SALES = 'y'
-                  >>IF OS-TYPE EQUAL "WINDOWS"
-                      CALL "SYSTEM" USING "del SALES.DAT"
-                  >>ELSE
-                      CALL "SYSTEM" USING "rm SALES.DAT"
-                  >>END-IF
-                   DISPLAY "Database have been reset sucessfully."
-                   PERFORM MENU-MAIN
-             ELSE 
+           IF RESET-PRODUCTS = 'Y' OR RESET-PRODUCTS = 'y'
+               ACCEPT WS-OS-NAME FROM ENVIRONMENT "OS"
+               IF WS-OS-NAME = "Windows_NT"
+                   CALL "SYSTEM" USING "del SALES.DAT"
+               ELSE 
+                   CALL "SYSTEM" USING "rm SALES.DAT"
+               END-IF
+               DISPLAY "Database have been reset sucessfully."
+               PERFORM MENU-MAIN
+           ELSE 
                PERFORM MENU-MAIN
            END-IF. 
 
@@ -764,17 +768,18 @@
            DISPLAY "Enter Choice: " WITH NO ADVANCING
            ACCEPT RESET-PRODUCTS
 
-            IF RESET-PRODUCTS = 'Y' OR RESET-PRODUCTS = 'y'
-                >>IF OS-TYPE EQUAL "WINDOWS"          
-                    CALL "SYSTEM" USING "del PRODUCTS.DAT"
-                >>ELSE
-                    CALL "SYSTEM" USING "rm PRODUCTS.DAT"
-                >>END-IF
-                   DISPLAY "Database have been reset sucessfully."
-                   PERFORM MENU-MAIN
+           IF RESET-PRODUCTS = 'Y' OR RESET-PRODUCTS = 'y'
+               ACCEPT WS-OS-NAME FROM ENVIRONMENT "OS"
+               IF WS-OS-NAME = "Windows_NT"
+                   CALL "SYSTEM" USING "del PRODUCTS.DAT"
                ELSE 
-                   PERFORM MENU-MAIN
-            END-IF. 
+                   CALL "SYSTEM" USING "rm PRODUCTS.DAT"
+               END-IF
+               DISPLAY "Database have been reset sucessfully."
+               PERFORM MENU-MAIN
+           ELSE 
+               PERFORM MENU-MAIN
+           END-IF.
        
        GET-NUMERIC-INPUT.
            MOVE 'N' TO WS-IS-VALID
@@ -875,11 +880,13 @@
            END-READ.
  
        CLEAR-SCREEN.
-           >>IF OS-TYPE EQUAL "WINDOWS"
-               CALL "SYSTEM" USING "cls"
-           >>ELSE
-               CALL "SYSTEM" USING "clear"
-           >>END-IF
+           ACCEPT WS-OS-NAME FROM ENVIRONMENT "OS"
+           IF WS-OS-NAME = "Windows_NT"
+               MOVE "cls" TO WS-CLEAR-COMMAND
+           ELSE 
+               MOVE "clear" TO WS-CLEAR-COMMAND
+           END-IF
+           CALL "SYSTEM" USING WS-CLEAR-COMMAND
            EXIT PARAGRAPH.
 
        PROG-TERMINATE.
