@@ -6,18 +6,6 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/status-active-success.svg)]()
 
-## 📋 Table of Contents
-- [Overview](#overview)
-- [Features](#features)
-- [System Architecture](#system-architecture)
-- [Technical Specifications](#technical-specifications)
-- [Installation](#installation)
-- [Usage Guide](#usage-guide)
-- [File Structure](#file-structure)
-- [Data Flow](#data-flow)
-- [Contributing](#contributing)
-- [Authors](#authors)
-
 ## 🎯 Overview
 
 This Inventory and Sales Management System is a robust COBOL application designed for small to medium-sized businesses to efficiently manage product inventories, track sales transactions, and generate comprehensive financial reports. The system leverages COBOL's powerful file handling capabilities to maintain persistent indexed and sequential data structures.
