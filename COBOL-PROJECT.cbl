@@ -39,6 +39,7 @@
            05  S-SALE-DATE             PIC S9(8).
 
        WORKING-STORAGE SECTION.
+       01  WS-OS-NAME                      PIC X(50).
        01  MAIN-CHOICE                 PIC S9(9).
        01  P-UPDATE-CHOICE             PIC S9(9).
        01  IS-CHOICE                   PIC S9(9).
@@ -57,7 +58,7 @@
               88 INVALID-INPUT     VALUE 'N'.
            05 WS-USER-CHOICE       PIC X.
               88 USER-CANCELLED    VALUE 'N' 'n'.
-              88 USER-RETRY        VALUE 'Y' 'y' SPACE.
+              88 USER-RETRY        VALUE 'Y' 'y'.
 
        01  P-PRODUCTS-STATUS           PIC XX.
            88  PRODUCTS-OK             VALUE "00".
@@ -137,6 +138,8 @@
                 WHEN 4
                     PERFORM CLEAR-SCREEN
                     PERFORM INCOME-STATEMENT
+                    ACCEPT OMITTED
+                    PERFORM MENU-MAIN
                 WHEN 5
                     PERFORM SALES-RESET
                 WHEN 6
@@ -169,6 +172,7 @@
                    INVALID KEY CONTINUE
                    NOT INVALID KEY
                        PERFORM CLEAR-SCREEN
+                       DISPLAY "Product ID already exists!"
                        PERFORM SHOW-VALIDATION-ERROR
 
                    IF USER-CANCELLED 
@@ -218,6 +222,7 @@
                END-IF
                MOVE FUNCTION NUMVAL(WS-FIELD-VALUE) TO I-STOCK
            
+           DISPLAY SPACES
            DISPLAY "Add another products? (Y/N)"
            DISPLAY "Enter Choice: " WITH NO ADVANCING 
            ACCEPT CONTINUE-ANOTHER 
@@ -236,7 +241,7 @@
            PERFORM STOCK-DISPLAY.
            DISPLAY SPACE.
            DISPLAY "=================================================="
-           DISPLAY "        20          UPDATE PRODUCT"
+           DISPLAY "                  UPDATE PRODUCT"
            DISPLAY "--------------------------------------------------"
            DISPLAY "1. Delete Product"
            DISPLAY "2. Update Product Details"
@@ -268,15 +273,17 @@
            PERFORM GET-TEXT-INPUT
                IF USER-CANCELLED
                     PERFORM CLEAR-SCREEN
-                    DISPLAY "                Cancelled."
+                    DISPLAY "                  Cancelled."
                     PERFORM UPDATE-PRODUCT-MENU
+               ELSE 
+                   MOVE WS-FIELD-VALUE TO I-PRODUCT-ID
                END-IF
-               MOVE WS-FIELD-VALUE TO I-PRODUCT-ID
-
+               
            MOVE I-PRODUCT-ID TO P-PRODUCT-ID
            READ P-PRODUCTS-FILE
                INVALID KEY
                     PERFORM CLEAR-SCREEN
+                    DISPLAY "Product ID not found!"
                     PERFORM SHOW-VALIDATION-ERROR
                IF USER-CANCELLED
                     PERFORM CLEAR-SCREEN
@@ -318,23 +325,22 @@
            END-READ.
 
        UPDATE-PRODUCT-DETAILS.
+           
            PERFORM SELECT-PRODUCT.
            IF USER-CANCELLED
                PERFORM CLEAR-SCREEN
-               DISPLAY "                 Delete cancelled."
-               PERFORM SELECT-PRODUCT
+               DISPLAY "                 Update cancelled."
+               PERFORM UPDATE-PRODUCT-MENU
            END-IF
            
            DISPLAY SPACES
            DISPLAY "==========CURRENT PRODUCT DETAILS=========="
-           MOVE P-COST-PER-UNIT TO DF-PCOST-PER-UNIT
-           MOVE P-STOCK TO DF-PSTOCK
-           MOVE P-UNIT-PRICE TO DF-PUNIT-PRICE
-           DISPLAY "Product ID             : " P-PRODUCT-ID
-           DISPLAY "Name                   : " P-PRODUCT-NAME
-           DISPLAY "Cost Per Unit          : ₱" DF-PCOST-PER-UNIT
-           DISPLAY "Unit Price             : ₱" DF-PUNIT-PRICE
-           DISPLAY "Stock                  : " DF-PSTOCK
+           PERFORM INITIALIZATION
+           DISPLAY "Product ID    : " P-PRODUCT-ID
+           DISPLAY "Name          : " FUNCTION TRIM(P-PRODUCT-NAME)
+           DISPLAY "Cost Per Unit : " FUNCTION TRIM(DF-PCOST-PER-UNIT)
+           DISPLAY "Unit Price    : " FUNCTION TRIM(DF-PUNIT-PRICE)
+           DISPLAY "Stock         : " FUNCTION TRIM(DF-PSTOCK)
            DISPLAY "==========================================="
            DISPLAY SPACES
            
@@ -348,38 +354,21 @@
            DISPLAY "Enter new Cost Per Unit (empty to skip): "
            WITH NO ADVANCING
            ACCEPT I-COST-PER-UNI
-           IF FUNCTION NUMVAL(I-COST-PER-UNI) <= 0
-               IF FUNCTION STORED-CHAR-LENGTH(I-COST-PER-UNI) <= 0
-                   PERFORM SHOW-VALIDATION-ERROR
-               END-IF
-           ELSE 
+           IF FUNCTION NUMVAL(I-COST-PER-UNI) > 0
                MOVE I-COST-PER-UNI TO P-COST-PER-UNIT
            END-IF
            
            DISPLAY "Enter new Unit Price (empty to skip): "
            WITH NO ADVANCING
            ACCEPT I-UNIT-PRICE
-           IF FUNCTION NUMVAL(I-UNIT-PRICE) <= 0
-               IF FUNCTION STORED-CHAR-LENGTH(I-UNIT-PRICE) < 0
-                   PERFORM SHOW-VALIDATION-ERROR
-               END-IF
-           ELSE 
+           IF FUNCTION NUMVAL(I-UNIT-PRICE) > 0
                MOVE I-UNIT-PRICE TO P-UNIT-PRICE
            END-IF
  
            DISPLAY "Enter new Stock quantity (empty to skip): "
            WITH NO ADVANCING
            ACCEPT I-STOCK
-           IF FUNCTION NUMVAL(I-STOCK) <= 0
-               IF FUNCTION STORED-CHAR-LENGTH(I-STOCK) < 0
-                   PERFORM SHOW-VALIDATION-ERROR
-                   IF USER-CANCELLED
-                       PERFORM CLEAR-SCREEN
-                       DISPLAY "                Cancelled."
-                       PERFORM UPDATE-PRODUCT-MENU
-                   END-IF
-               END-IF
-           ELSE 
+           IF FUNCTION NUMVAL(I-STOCK) > 0
                MOVE I-STOCK TO P-STOCK
            END-IF
 
@@ -390,10 +379,10 @@
                    DISPLAY SPACES
                    PERFORM INITIALIZATION
                    DISPLAY "==============UPDATED DETAILS=============="
-                   DISPLAY "Name               : " P-PRODUCT-NAME
-                   DISPLAY "Cost Per Unit      : ₱" DF-PCOST-PER-UNIT
-                   DISPLAY "Unit Price         : ₱" DF-PUNIT-PRICE
-                   DISPLAY "Stock              : " DF-PSTOCK
+           DISPLAY "Name          : " FUNCTION TRIM(P-PRODUCT-NAME)
+           DISPLAY "Cost Per Unit : " FUNCTION TRIM(DF-PCOST-PER-UNIT)
+           DISPLAY "Unit Price    : " FUNCTION TRIM(DF-PUNIT-PRICE)
+           DISPLAY "Stock         : " FUNCTION TRIM(DF-PSTOCK)
                    DISPLAY "==========================================="
                    DISPLAY SPACES
            END-REWRITE
@@ -412,7 +401,6 @@
 
       *                     INCOME STATEMENT, RECORD SALE
        RECORD-SALES.
-           PERFORM CLEAR-SCREEN
            PERFORM DISPLAY-DASHBOARD
            DISPLAY "=================================================="
            DISPLAY "                   RECORD SALES"
@@ -427,11 +415,10 @@
 
            PERFORM INITIALIZATION
            DISPLAY SPACE
-           DISPLAY "Product ID         : " FUNCTION TRIM(P-PRODUCT-ID)
+           DISPLAY "Product ID         : " P-PRODUCT-ID
            DISPLAY "Product Name       : " P-PRODUCT-NAME
            DISPLAY "Available Stock    : " FUNCTION TRIM(DF-PSTOCK)
-           DISPLAY "Unit Price         : ₱"                             - 
-           FUNCTION TRIM(DF-PCOST-PER-UNIT)
+           DISPLAY "Unit Price         : " FUNCTION TRIM(DF-PUNIT-PRICE)
            DISPLAY SPACE
            DISPLAY "Enter Sold Units: " WITH NO ADVANCING
            ACCEPT I-SOLD-UNITS
@@ -440,6 +427,7 @@
            IF I-SOLD-UNITS = SPACES OR I-SOLD-UNITS = ZERO OR           -
            I-SOLD-UNITS =" " 
                     PERFORM CLEAR-SCREEN
+                    DISPLAY "Invalid quantity entered!"
                     PERFORM SHOW-VALIDATION-ERROR
                IF USER-CANCELLED
                     PERFORM CLEAR-SCREEN
@@ -449,15 +437,22 @@
                     PERFORM CLEAR-SCREEN
                     PERFORM RECORD-SALES
                END-IF
-                    PERFORM RECORD-SALES
-           ELSE
+           END-IF
 
       *                    Check if sufficient stock
            IF I-SOLD-UNITS > P-STOCK
                PERFORM CLEAR-SCREEN
                DISPLAY "Insufficient stock! Available: " P-STOCK
-               PERFORM RECORD-SALES
-               DISPLAY SPACE
+               DISPLAY " "
+               PERFORM SHOW-VALIDATION-ERROR
+               IF USER-CANCELLED
+                    PERFORM CLEAR-SCREEN
+                    DISPLAY "                Sale cancelled."
+                    PERFORM MENU-MAIN
+               ELSE
+                    PERFORM CLEAR-SCREEN
+                    PERFORM RECORD-SALES
+               END-IF
            END-IF
 
       *                        Calculate sales amounts
@@ -490,17 +485,19 @@
            ELSE
                DISPLAY "Sale recorded successfully!"
                MOVE CF-SALE-AMOUNT TO DF-DISP-AMOUNT
-               DISPLAY "Total Sale Amount  : ₱ "                        -
+               DISPLAY "Total Sale Amount  :  "                         -
                FUNCTION TRIM(DF-DISP-AMOUNT)
                MOVE CF-PROFIT-AMOUNT TO DF-DISP-AMOUNT
-               DISPLAY "Profit             : ₱ "                        - 
+               DISPLAY "Profit             :  "                         - 
                FUNCTION TRIM(DF-DISP-AMOUNT)
+               MOVE P-STOCK TO DF-PSTOCK
                DISPLAY "Remaining Stock    : "                          - 
                FUNCTION TRIM(DF-PSTOCK)
            END-IF
            CLOSE S-SALES-FILE
 
       *          ASKS WHETHER TO CONTINUE ENTERING SALES OR NOT
+           DISPLAY " "
            DISPLAY "Enter another sale? (Y/N)"
            DISPLAY "Enter Choice: " WITH NO ADVANCING 
            ACCEPT CONTINUE-SALE 
@@ -508,10 +505,8 @@
             IF CONTINUE-SALE = 'Y' OR CONTINUE-SALE = 'y'
                 PERFORM CLEAR-SCREEN
                 PERFORM RECORD-SALES
-            ELSE 
-              CONTINUE
-            END-IF.
-            PERFORM CLEAR-SCREEN
+            END-IF
+           PERFORM CLEAR-SCREEN
            PERFORM MENU-MAIN.
 
        INCOME-STATEMENT.
@@ -547,7 +542,7 @@
                                S-PRODUCT-NAME(1:15) " " 
                                DF-DISP-QTY " " 
                                DF-DISP-AMOUNT
-                       DISPLAY "      " "₱ " DF-S-PROFIT
+                       DISPLAY "      " " " DF-S-PROFIT
                END-READ
            END-PERFORM
 
@@ -556,10 +551,10 @@
            DISPLAY "Total Quantity Sold: " DF-DISP-QTY
 
            MOVE DT-TOTAL-REVENUE TO DF-DISP-AMOUNT
-           DISPLAY "Total Revenue: ₱" DF-DISP-AMOUNT
+           DISPLAY "Total Revenue: " DF-DISP-AMOUNT
 
            MOVE DT-TOTAL-PROFIT TO DF-DISP-AMOUNT
-           DISPLAY "Total Profit: ₱" DF-DISP-AMOUNT
+           DISPLAY "Total Profit: " DF-DISP-AMOUNT
 
            IF DT-TOTAL-REVENUE > ZERO
                COMPUTE DT-PROFIT-MARGIN =
@@ -569,20 +564,7 @@
            END-IF
            CLOSE S-SALES-FILE.
 
-           DISPLAY "=================================================="
-           DISPLAY "9. Return"
-           DISPLAY SPACE
-           DISPLAY "Enter your choice: " WITH NO ADVANCING
-           ACCEPT IS-CHOICE
-
-           EVALUATE IS-CHOICE
-               WHEN 9
-                   PERFORM MENU-MAIN
-               WHEN OTHER
-                   PERFORM CLEAR-SCREEN
-                   DISPLAY "                 Invalid option!"
-                   PERFORM INCOME-STATEMENT
-           END-EVALUATE.
+           DISPLAY "==================================================".
 
       *      DISPLAY DASHBOARD - STOCK, INITIALIZATION, TERMINATION
        DISPLAY-DASHBOARD.
@@ -594,25 +576,25 @@
            DISPLAY "=================================================="
            
            MOVE DT-TOTAL-PRODUCTS TO DF-DISP-QTY
-           DISPLAY "Total Products: " FUNCTION TRIM(DF-DISP-QTY)
+           DISPLAY "Total Products   : " FUNCTION TRIM(DF-DISP-QTY)
            
            MOVE DT-TOTAL-STOCK TO DF-DISP-QTY
            DISPLAY "Total Stock Units: " FUNCTION TRIM(DF-DISP-QTY)
            
            MOVE DT-TOTAL-REVENUE TO DF-DISP-AMOUNT
-           DISPLAY "Total Revenue: ₱ " FUNCTION TRIM(DF-DISP-AMOUNT)
+           DISPLAY "Total Revenue    :  " FUNCTION TRIM(DF-DISP-AMOUNT)
            
            MOVE DT-TOTAL-PROFIT TO DF-DISP-AMOUNT
-           DISPLAY "Total Profit: ₱ " FUNCTION TRIM(DF-DISP-AMOUNT)
+           DISPLAY "Total Profit     :  " FUNCTION TRIM(DF-DISP-AMOUNT)
            
            MOVE DT-TOTAL-QTY-SOLD TO DF-DISP-QTY
-           DISPLAY "Total Units Sold: " FUNCTION TRIM(DF-DISP-QTY)
+           DISPLAY "Total Units Sold : " FUNCTION TRIM(DF-DISP-QTY)
            
            IF DT-TOTAL-REVENUE > ZERO
                COMPUTE DT-PROFIT-MARGIN = 
                    (DT-TOTAL-PROFIT / DT-TOTAL-REVENUE) * 100
                MOVE DT-PROFIT-MARGIN TO DF-DISP-PERCENTAGE
-               DISPLAY "Profit Margin: " DF-DISP-PERCENTAGE "%"
+               DISPLAY "Profit Margin    : " DF-DISP-PERCENTAGE "%"
            END-IF.
            
        STOCK-DISPLAY.
@@ -707,31 +689,37 @@
            DISPLAY SPACE.
 
        SALES-RESET.
-           PERFORM DISPLAY-DASHBOARD
-           DISPLAY "Reset SALES Database? This can not be undone. (Y/N)" 
-           DISPLAY "Enter Choice: " WITH NO ADVANCING
+           PERFORM CLEAR-SCREEN
+           PERFORM INCOME-STATEMENT
+           DISPLAY SPACES 
+           DISPLAY "Reset SALES Database? This can not be undone. "     
+           DISPLAY "Enter (Y) else cancel: " WITH NO ADVANCING
            ACCEPT RESET-SALES
 
-           IF RESET-PRODUCTS = 'Y' OR RESET-PRODUCTS = 'y'
+           IF RESET-SALES = 'Y' OR RESET-SALES = 'y'
                ACCEPT WS-OS-NAME FROM ENVIRONMENT "OS"
                IF WS-OS-NAME = "Windows_NT"
                    CALL "SYSTEM" USING "del SALES.DAT"
                ELSE 
                    CALL "SYSTEM" USING "rm SALES.DAT"
                END-IF
+
                DISPLAY "Database have been reset sucessfully."
-                   PERFORM MENU-MAIN
-               ELSE 
-                   PERFORM MENU-MAIN
+               PERFORM MENU-MAIN
+           ELSE 
+               PERFORM CLEAR-SCREEN
+               DISPLAY "                  Cancelled."
+               ACCEPT OMITTED
+               PERFORM MENU-MAIN
            END-IF.
            EXIT PARAGRAPH.
 
        PRODUCTS-RESET.
-           PERFORM DISPLAY-DASHBOARD
-
-           DISPLAY "Reset PRODUCTS Database? This can not be undone. "  -
-           "(Y/N)"
-           DISPLAY "Enter Choice: " WITH NO ADVANCING
+           PERFORM CLEAR-SCREEN
+           PERFORM STOCK-DISPLAY
+           DISPLAY SPACES
+           DISPLAY "Reset PRODUCTS Database? This can not be undone. "
+           DISPLAY "Enter (Y) else cancel: " WITH NO ADVANCING 
            ACCEPT RESET-PRODUCTS
 
            IF RESET-PRODUCTS = 'Y' OR RESET-PRODUCTS = 'y'
@@ -741,14 +729,19 @@
                ELSE 
                    CALL "SYSTEM" USING "rm PRODUCTS.DAT"
                END-IF
+
                DISPLAY "Database have been reset sucessfully."
-                   PERFORM MENU-MAIN
-               ELSE 
-                   PERFORM MENU-MAIN
+               PERFORM MENU-MAIN
+           ELSE 
+               PERFORM CLEAR-SCREEN
+               DISPLAY "                  Cancelled."
+               ACCEPT OMITTED
+               PERFORM MENU-MAIN
            END-IF.
            EXIT PARAGRAPH.
        
        GET-NUMERIC-INPUT.
+           MOVE ALL SPACES TO WS-VALIDATION-FLAGS
            MOVE 'N' TO WS-IS-VALID
            PERFORM UNTIL VALID-INPUT OR USER-CANCELLED
                DISPLAY WS-FIELD-NAME ": " WITH NO ADVANCING
@@ -759,8 +752,8 @@
                    IF USER-CANCELLED EXIT PARAGRAPH END-IF
                ELSE
                    IF FUNCTION TEST-NUMVAL(WS-FIELD-VALUE) = 0
-                      IF FUNCTION NUMVAL(WS-FIELD-VALUE) < 0
-                           DISPLAY "Value cannot be negative."
+                      IF FUNCTION NUMVAL(WS-FIELD-VALUE) <= 0
+                           DISPLAY "Value must be greater than zero."
                            PERFORM SHOW-VALIDATION-ERROR
                            IF USER-CANCELLED EXIT PARAGRAPH END-IF
                        ELSE
@@ -776,6 +769,7 @@
            END-PERFORM.
 
        GET-TEXT-INPUT.
+           MOVE ALL SPACES TO WS-VALIDATION-FLAGS
            MOVE 'N' TO WS-IS-VALID
            PERFORM UNTIL VALID-INPUT OR USER-CANCELLED
                DISPLAY WS-FIELD-NAME ": " WITH NO ADVANCING
@@ -793,15 +787,14 @@
 
        SHOW-VALIDATION-ERROR.
            DISPLAY SPACE
-           DISPLAY "+ Invalid value entered for " WS-FIELD-NAME
-           DISPLAY SPACE
-           DISPLAY "+ Press 'N' to cancel or enter any to retry: "
-           WITH NO ADVANCING
+           DISPLAY "Invalid value. Press 'N' to cancel or any key"
+           DISPLAY "to retry: " WITH NO ADVANCING
            ACCEPT WS-USER-CHOICE
            
            IF NOT USER-CANCELLED
                MOVE 'Y' TO WS-USER-CHOICE
            END-IF.
+           DISPLAY SPACE.
 
        SAVE-PRODUCT.
            MOVE I-PRODUCT-ID TO P-PRODUCT-ID
@@ -823,27 +816,36 @@
                INVALID KEY
                    DISPLAY "Error adding product!"
                NOT INVALID KEY
+                   PERFORM INITIALIZATION
                    DISPLAY "Product added successfully!"
-                   DISPLAY "Product ID: " P-PRODUCT-ID
-                   DISPLAY "Name: " P-PRODUCT-NAME
-                   DISPLAY "Cost Per Unit: " DF-PCOST-PER-UNIT
-                   DISPLAY "Unit Price: " DF-PUNIT-PRICE
-                   DISPLAY "Stock: " P-STOCK
+                   DISPLAY "Product ID     : " P-PRODUCT-ID
+                   DISPLAY "Name           : " P-PRODUCT-NAME
+                   DISPLAY "Cost Per Unit  : " DF-PCOST-PER-UNIT
+                   DISPLAY "Unit Price     : " DF-PUNIT-PRICE
+                   DISPLAY "Stock          : " DF-PSTOCK
            END-WRITE.
 
        SELECT-PRODUCT.
            PERFORM STOCK-DISPLAY
            MOVE "Enter Product ID to select" TO WS-FIELD-NAME
            PERFORM GET-TEXT-INPUT
+           
+           IF USER-CANCELLED
+               EXIT PARAGRAPH
+           END-IF
 
            MOVE WS-FIELD-VALUE TO P-PRODUCT-ID
            READ P-PRODUCTS-FILE
-      *              CHECKS IF THE ENTERED PROD-ID IS EMPTY     
-           INVALID KEY
-                PERFORM SHOW-VALIDATION-ERROR
-                IF USER-RETRY
-                PERFORM SELECT-PRODUCT 
-                END-IF
+               INVALID KEY
+                   PERFORM CLEAR-SCREEN
+                   DISPLAY "Product ID not found!"
+                   PERFORM SHOW-VALIDATION-ERROR
+                   IF USER-CANCELLED
+                       EXIT PARAGRAPH
+                   ELSE
+                       PERFORM CLEAR-SCREEN
+                       PERFORM SELECT-PRODUCT
+                   END-IF
            END-READ.
  
        CLEAR-SCREEN.
@@ -852,7 +854,7 @@
                CALL "SYSTEM" USING "cls"
            ELSE 
                CALL "SYSTEM" USING "clear"
-           END-IF.
+           END-IF
            EXIT PARAGRAPH.
 
        PROG-TERMINATE.
@@ -863,4 +865,4 @@
            DISPLAY "          Files saved. System terminated."
            DISPLAY SPACE.
            STOP RUN.
-           STOP RUN.
+     
