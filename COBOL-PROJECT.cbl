@@ -98,6 +98,12 @@
            05  DF-PSTOCK               PIC ZZZZZZ.
            05  DF-PCOST-PER-UNIT       PIC ZZZ,ZZZ,ZZ9.99.
            
+       01  PRODUCT-REVENUE-TOTALS.
+           05  PR-TOTAL-REVENUE        PIC S9(10)V99 VALUE ZERO.
+           05  PR-TOTAL-PROFIT         PIC S9(10)V99 VALUE ZERO.
+           05  PR-TOTAL-SOLD           PIC S9(8) VALUE ZERO.
+           05  PR-TIMES-SOLD           PIC S9(5) VALUE ZERO.
+           
        01  CURRENT-DATE.
            05  CD-YEAR                 PIC 9(4).
            05  CD-MONTH                PIC 9(2).
@@ -117,8 +123,9 @@
            DISPLAY "| 2. Update product information                  |".
            DISPLAY "| 3. Record a sale                               |".
            DISPLAY "| 4. Income statement                            |".
-           DISPLAY "| 5. Reset Sales Database                        |".
-           DISPLAY "| 6. Reset Products Database                     |".
+           DISPLAY "| 5. View product details                        |".
+           DISPLAY "| 6. Reset Sales Database                        |".
+           DISPLAY "| 7. Reset Products Database                     |".
            DISPLAY "|                                                |".
            DISPLAY "| 9. Exit                                        |".
            DISPLAY "==================================================".
@@ -141,8 +148,11 @@
                     ACCEPT OMITTED
                     PERFORM MENU-MAIN
                 WHEN 5
-                    PERFORM SALES-RESET
+                    PERFORM CLEAR-SCREEN
+                    PERFORM VIEW-PRODUCT-DETAILS-MENU
                 WHEN 6
+                    PERFORM SALES-RESET
+                WHEN 7
                     PERFORM CLEAR-SCREEN
                     PERFORM PRODUCTS-RESET
                 WHEN 9
@@ -336,7 +346,7 @@
            DISPLAY SPACES
            DISPLAY "==========CURRENT PRODUCT DETAILS=========="
            PERFORM INITIALIZATION
-           DISPLAY "Product ID    : " P-PRODUCT-ID
+           DISPLAY "Product ID    : " FUNCTION TRIM(P-PRODUCT-ID)
            DISPLAY "Name          : " FUNCTION TRIM(P-PRODUCT-NAME)
            DISPLAY "Cost Per Unit : " FUNCTION TRIM(DF-PCOST-PER-UNIT)
            DISPLAY "Unit Price    : " FUNCTION TRIM(DF-PUNIT-PRICE)
@@ -480,10 +490,10 @@
            WRITE SALES-RECORD
            IF NOT SALES-OK
                PERFORM CLEAR-SCREEN
-               DISPLAY " Error recording sale! Status: " S-SALES-STATUS
+               DISPLAY "  Error recording sale! Status: " S-SALES-STATUS
                PERFORM RECORD-SALES
            ELSE
-               DISPLAY "Sale recorded successfully!"
+               DISPLAY "           Sale recorded successfully!"
                MOVE CF-SALE-AMOUNT TO DF-DISP-AMOUNT
                DISPLAY "Total Sale Amount  :  "                         -
                FUNCTION TRIM(DF-DISP-AMOUNT)
@@ -491,8 +501,7 @@
                DISPLAY "Profit             :  "                         - 
                FUNCTION TRIM(DF-DISP-AMOUNT)
                MOVE P-STOCK TO DF-PSTOCK
-               DISPLAY "Remaining Stock    : "                          - 
-               FUNCTION TRIM(DF-PSTOCK)
+               DISPLAY "Remaining Stock    : " FUNCTION TRIM(DF-PSTOCK)
            END-IF
            CLOSE S-SALES-FILE
 
@@ -547,13 +556,10 @@
            END-PERFORM
 
            DISPLAY "--------------------------------------------------"
-           MOVE DT-TOTAL-QTY-SOLD TO DF-DISP-QTY
+           PERFORM INITIALIZATION
+
            DISPLAY "Total Quantity Sold: " DF-DISP-QTY
-
-           MOVE DT-TOTAL-REVENUE TO DF-DISP-AMOUNT
            DISPLAY "Total Revenue: " DF-DISP-AMOUNT
-
-           MOVE DT-TOTAL-PROFIT TO DF-DISP-AMOUNT
            DISPLAY "Total Profit: " DF-DISP-AMOUNT
 
            IF DT-TOTAL-REVENUE > ZERO
@@ -566,6 +572,171 @@
 
            DISPLAY "==================================================".
 
+      *      VIEW PRODUCT DETAILS WITH REVENUE
+       VIEW-PRODUCT-DETAILS-MENU.
+           DISPLAY "=================================================="
+           DISPLAY "              VIEW PRODUCT DETAILS"
+           DISPLAY "=================================================="
+           DISPLAY "1. View single product details"
+           DISPLAY "2. View all products details"
+           DISPLAY " "
+           DISPLAY "9. Return to main menu"
+           DISPLAY "=================================================="
+           DISPLAY "Enter your choice: " WITH NO ADVANCING
+           ACCEPT IS-CHOICE
+           
+           EVALUATE IS-CHOICE
+               WHEN 1
+                   PERFORM CLEAR-SCREEN
+                   PERFORM VIEW-SINGLE-PRODUCT
+               WHEN 2
+                   PERFORM CLEAR-SCREEN
+                   PERFORM VIEW-ALL-PRODUCTS
+               WHEN 9
+                   PERFORM CLEAR-SCREEN
+                   PERFORM MENU-MAIN
+               WHEN OTHER
+                   PERFORM CLEAR-SCREEN
+                   DISPLAY "Invalid option!"
+                   PERFORM VIEW-PRODUCT-DETAILS-MENU
+           END-EVALUATE.
+
+       VIEW-SINGLE-PRODUCT.
+           PERFORM SELECT-PRODUCT
+           IF USER-CANCELLED
+               PERFORM CLEAR-SCREEN
+               DISPLAY "                 Cancelled."
+               PERFORM VIEW-PRODUCT-DETAILS-MENU
+           END-IF
+
+           PERFORM CALCULATE-PRODUCT-REVENUE
+
+           DISPLAY "=================================================="
+           DISPLAY "           DETAILED PRODUCT INFORMATION"
+           DISPLAY "=================================================="
+           DISPLAY " "
+           DISPLAY "PRODUCT INFORMATION:"
+           DISPLAY "--------------------------------------------------"
+           PERFORM INITIALIZATION
+           
+           DISPLAY "Product ID         : " P-PRODUCT-ID
+           DISPLAY "Product Name       : " P-PRODUCT-NAME
+           DISPLAY "Cost Per Unit      : " DF-PCOST-PER-UNIT
+           DISPLAY "Unit Price         : " DF-PUNIT-PRICE
+           DISPLAY "Current Stock      : " DF-PSTOCK
+           
+           MOVE P-DATE-ADDED(1:2) TO CD-MONTH
+           MOVE P-DATE-ADDED(3:2) TO CD-DAY
+           MOVE P-DATE-ADDED(5:4) TO CD-YEAR
+           DISPLAY "Date Added         : " 
+                   CD-MONTH "/" CD-DAY "/" CD-YEAR
+           
+           DISPLAY " "
+           DISPLAY "SALES PERFORMANCE:"
+           DISPLAY "--------------------------------------------------"
+           MOVE PR-TIMES-SOLD TO DF-DISP-QTY
+           DISPLAY "Times Sold         : " FUNCTION TRIM(DF-DISP-QTY)
+           
+           MOVE PR-TOTAL-SOLD TO DF-DISP-QTY
+           DISPLAY "Total Units Sold   : " FUNCTION TRIM(DF-DISP-QTY)
+           
+           MOVE PR-TOTAL-REVENUE TO DF-DISP-AMOUNT
+           DISPLAY "Total Revenue      : " 
+                   FUNCTION TRIM(DF-DISP-AMOUNT)
+           
+           MOVE PR-TOTAL-PROFIT TO DF-DISP-AMOUNT
+           DISPLAY "Total Profit       : " 
+                   FUNCTION TRIM(DF-DISP-AMOUNT)
+           
+           IF PR-TOTAL-REVENUE > ZERO
+               COMPUTE DT-PROFIT-MARGIN = 
+                   (PR-TOTAL-PROFIT / PR-TOTAL-REVENUE) * 100
+               MOVE DT-PROFIT-MARGIN TO DF-DISP-PERCENTAGE
+               DISPLAY "Profit Margin      : " DF-DISP-PERCENTAGE "%"
+           END-IF
+           
+           DISPLAY "=================================================="
+           DISPLAY " "
+           DISPLAY "Press any key to continue..."
+           ACCEPT OMITTED
+           PERFORM CLEAR-SCREEN
+           PERFORM VIEW-PRODUCT-DETAILS-MENU.
+
+       VIEW-ALL-PRODUCTS.
+           DISPLAY "=================================================="
+           DISPLAY "          ALL PRODUCTS DETAILED REPORT"
+           DISPLAY "=================================================="
+           DISPLAY " "
+
+           MOVE LOW-VALUES TO P-PRODUCT-ID
+           START P-PRODUCTS-FILE KEY IS GREATER THAN P-PRODUCT-ID
+
+           PERFORM UNTIL PRODUCTS-EOF OR P-PRODUCTS-STATUS NOT = "00"
+               READ P-PRODUCTS-FILE NEXT RECORD
+                   AT END 
+                       SET PRODUCTS-EOF TO TRUE
+                   NOT AT END
+                       PERFORM CALCULATE-PRODUCT-REVENUE
+                       
+                    DISPLAY "------------------------------------------"
+                       PERFORM INITIALIZATION
+                       
+                       DISPLAY "ID: " P-PRODUCT-ID 
+                               " | " P-PRODUCT-NAME
+                       
+                       MOVE P-DATE-ADDED(1:2) TO CD-MONTH
+                       MOVE P-DATE-ADDED(3:2) TO CD-DAY
+                       MOVE P-DATE-ADDED(5:4) TO CD-YEAR
+                       DISPLAY "Added: " CD-MONTH "/" CD-DAY "/" CD-YEAR
+                               " | Stock: " FUNCTION TRIM(DF-PSTOCK)
+                       
+                       DISPLAY "Cost: " FUNCTION TRIM(DF-PCOST-PER-UNIT)
+                               " | Price: " 
+                               FUNCTION TRIM(DF-PUNIT-PRICE)
+                       
+                       MOVE PR-TOTAL-SOLD TO DF-DISP-QTY
+                       MOVE PR-TOTAL-REVENUE TO DF-DISP-AMOUNT
+                       DISPLAY "Sold: " FUNCTION TRIM(DF-DISP-QTY)
+                               " units | Revenue: " 
+                               FUNCTION TRIM(DF-DISP-AMOUNT)
+                       
+                       MOVE PR-TOTAL-PROFIT TO DF-DISP-AMOUNT
+                       DISPLAY "Profit: " FUNCTION TRIM(DF-DISP-AMOUNT)
+               END-READ
+           END-PERFORM
+
+           DISPLAY "=================================================="
+           DISPLAY " "
+           DISPLAY "Press any key to continue..."
+           ACCEPT OMITTED
+           PERFORM CLEAR-SCREEN
+           PERFORM VIEW-PRODUCT-DETAILS-MENU.
+
+       CALCULATE-PRODUCT-REVENUE.
+           MOVE ZERO TO PR-TOTAL-REVENUE
+           MOVE ZERO TO PR-TOTAL-PROFIT
+           MOVE ZERO TO PR-TOTAL-SOLD
+           MOVE ZERO TO PR-TIMES-SOLD
+
+           CLOSE S-SALES-FILE
+           OPEN INPUT S-SALES-FILE
+
+           PERFORM UNTIL SALES-EOF
+               READ S-SALES-FILE
+                   AT END
+                       SET SALES-EOF TO TRUE
+                   NOT AT END
+                       IF S-PRODUCT-ID = P-PRODUCT-ID
+                           ADD S-TOTAL-AMOUNT TO PR-TOTAL-REVENUE
+                           ADD S-PROFIT TO PR-TOTAL-PROFIT
+                           ADD S-SOLD-UNITS TO PR-TOTAL-SOLD
+                           ADD 1 TO PR-TIMES-SOLD
+                       END-IF
+               END-READ
+           END-PERFORM
+
+           CLOSE S-SALES-FILE.
+
       *      DISPLAY DASHBOARD - STOCK, INITIALIZATION, TERMINATION
        DISPLAY-DASHBOARD.
            PERFORM INITIALIZATION
@@ -574,27 +745,17 @@
            DISPLAY "=================================================="
            DISPLAY "                DASHBOARD SUMMARY"
            DISPLAY "=================================================="
-           
-           MOVE DT-TOTAL-PRODUCTS TO DF-DISP-QTY
-           DISPLAY "Total Products   : " FUNCTION TRIM(DF-DISP-QTY)
-           
-           MOVE DT-TOTAL-STOCK TO DF-DISP-QTY
+           DISPLAY "Total Products: " FUNCTION TRIM(DF-DISP-QTY)
            DISPLAY "Total Stock Units: " FUNCTION TRIM(DF-DISP-QTY)
-           
-           MOVE DT-TOTAL-REVENUE TO DF-DISP-AMOUNT
-           DISPLAY "Total Revenue    :  " FUNCTION TRIM(DF-DISP-AMOUNT)
-           
-           MOVE DT-TOTAL-PROFIT TO DF-DISP-AMOUNT
-           DISPLAY "Total Profit     :  " FUNCTION TRIM(DF-DISP-AMOUNT)
-           
-           MOVE DT-TOTAL-QTY-SOLD TO DF-DISP-QTY
-           DISPLAY "Total Units Sold : " FUNCTION TRIM(DF-DISP-QTY)
+           DISPLAY "Total Revenue:  " FUNCTION TRIM(DF-DISP-AMOUNT)
+           DISPLAY "Total Profit:  " FUNCTION TRIM(DF-DISP-AMOUNT)
+           DISPLAY "Total Units Sold: " FUNCTION TRIM(DF-DISP-QTY)
            
            IF DT-TOTAL-REVENUE > ZERO
                COMPUTE DT-PROFIT-MARGIN = 
                    (DT-TOTAL-PROFIT / DT-TOTAL-REVENUE) * 100
                MOVE DT-PROFIT-MARGIN TO DF-DISP-PERCENTAGE
-               DISPLAY "Profit Margin    : " DF-DISP-PERCENTAGE "%"
+               DISPLAY "Profit Margin: " DF-DISP-PERCENTAGE "%"
            END-IF.
            
        STOCK-DISPLAY.
@@ -665,6 +826,12 @@
            MOVE P-COST-PER-UNIT TO DF-PCOST-PER-UNIT
            MOVE P-STOCK TO DF-PSTOCK
            MOVE P-UNIT-PRICE TO DF-PUNIT-PRICE
+           
+           MOVE DT-TOTAL-PRODUCTS TO DF-DISP-QTY
+           MOVE DT-TOTAL-STOCK TO DF-DISP-QTY
+           MOVE DT-TOTAL-REVENUE TO DF-DISP-AMOUNT
+           MOVE DT-TOTAL-PROFIT TO DF-DISP-AMOUNT
+           MOVE DT-TOTAL-QTY-SOLD TO DF-DISP-QTY
 
            ACCEPT CURRENT-DATE FROM DATE YYYYMMDD
            MOVE CURRENT-DATE(5:2) TO DATE-DISPLAY(1:2)
@@ -818,11 +985,11 @@
                NOT INVALID KEY
                    PERFORM INITIALIZATION
                    DISPLAY "Product added successfully!"
-                   DISPLAY "Product ID     : " P-PRODUCT-ID
-                   DISPLAY "Name           : " P-PRODUCT-NAME
-                   DISPLAY "Cost Per Unit  : " DF-PCOST-PER-UNIT
-                   DISPLAY "Unit Price     : " DF-PUNIT-PRICE
-                   DISPLAY "Stock          : " DF-PSTOCK
+                   DISPLAY "Product ID: " P-PRODUCT-ID
+                   DISPLAY "Name: " P-PRODUCT-NAME
+                   DISPLAY "Cost Per Unit: " DF-PCOST-PER-UNIT
+                   DISPLAY "Unit Price: " DF-PUNIT-PRICE
+                   DISPLAY "Stock: " P-STOCK
            END-WRITE.
 
        SELECT-PRODUCT.
@@ -838,7 +1005,7 @@
            READ P-PRODUCTS-FILE
                INVALID KEY
                    PERFORM CLEAR-SCREEN
-                   DISPLAY "Product ID not found!"
+                   DISPLAY "            Product ID not found!"
                    PERFORM SHOW-VALIDATION-ERROR
                    IF USER-CANCELLED
                        EXIT PARAGRAPH
@@ -865,4 +1032,3 @@
            DISPLAY "          Files saved. System terminated."
            DISPLAY SPACE.
            STOP RUN.
-     
