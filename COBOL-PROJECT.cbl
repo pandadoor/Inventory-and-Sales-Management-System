@@ -679,7 +679,6 @@
                        PERFORM CALCULATE-PRODUCT-REVENUE
                        
                     DISPLAY "------------------------------------------"
-                       PERFORM INITIALIZATION
                        
                        DISPLAY "ID: " P-PRODUCT-ID 
                                " | " P-PRODUCT-NAME
