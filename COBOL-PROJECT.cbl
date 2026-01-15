@@ -712,48 +712,52 @@
            PERFORM CLEAR-SCREEN
            PERFORM VIEW-PRODUCT-DETAILS-MENU.
  
-      *    VIEW ALL PRODUCT DETAILS
+      *    VIEW ALL PRODUCT DETAILS*    VIEW ALL PRODUCT DETAILS
        VIEW-ALL-PRODUCTS.
            DISPLAY "=================================================="
            DISPLAY "          ALL PRODUCTS DETAILED REPORT"
            DISPLAY "=================================================="
            DISPLAY " "
-
-      *    TO VIEW AND DISPLAY PRODUCT DATABASE
+       
+      *   INITIALIZE PRODUCT FILE READING FROM THE START
            MOVE LOW-VALUES TO P-PRODUCT-ID         
            START P-PRODUCTS-FILE KEY IS GREATER THAN P-PRODUCT-ID
-
+       
+      *   LOOP THROUGH ALL PRODUCTS IN THE DATABASE
            PERFORM UNTIL PRODUCTS-EOF OR P-PRODUCTS-STATUS NOT = "00"
                READ P-PRODUCTS-FILE NEXT RECORD
                    AT END 
                        SET PRODUCTS-EOF TO TRUE
                    NOT AT END
+      *               CALCULATE SALES METRICS FOR CURRENT PRODUCT
                        PERFORM CALCULATE-PRODUCT-REVENUE
                        
+      *               FORMAT AND DISPLAY PRODUCT INFORMATION
                     DISPLAY "------------------------------------------"
-                     
+                       
+      *               DISPLAY PRODUCT ID AND NAME
                        DISPLAY "ID: " P-PRODUCT-ID 
                                " | " P-PRODUCT-NAME
                        
+      *               FORMAT AND DISPLAY DATE ADDED WITH CURRENT STOCK
                        MOVE P-DATE-ADDED(1:2) TO CD-MONTH
                        MOVE P-DATE-ADDED(3:2) TO CD-DAY
                        MOVE P-DATE-ADDED(5:4) TO CD-YEAR
                        DISPLAY "Added: " CD-MONTH "/" CD-DAY "/" CD-YEAR
                                " | Stock: " FUNCTION TRIM(DF-PSTOCK)
                        
+      *               DISPLAY COST AND SELLING PRICE
                        DISPLAY "Cost: " FUNCTION TRIM(DF-PCOST-PER-UNIT)
-                               " | Price: " 
-                               FUNCTION TRIM(DF-PUNIT-PRICE)
-
-                       MOVE PR-TOTAL-SOLD TO DF-DISP-QTY
-                       MOVE PR-TOTAL-REVENUE TO DF-DISP-AMOUNT
-
+                               " | Price: "FUNCTION TRIM(DF-PUNIT-PRICE)
+       
+      *               FORMAT SALES QUANTITIES AND REVENUE
                        MOVE PR-TOTAL-SOLD TO DF-DISP-QTY
                        MOVE PR-TOTAL-REVENUE TO DF-DISP-AMOUNT
                        DISPLAY "Sold: " FUNCTION TRIM(DF-DISP-QTY)
                                " units | Revenue: " 
                                FUNCTION TRIM(DF-DISP-AMOUNT)
                        
+      *               DISPLAY PROFIT INFORMATION
                        MOVE PR-TOTAL-PROFIT TO DF-DISP-AMOUNT
                        DISPLAY "Profit: " FUNCTION TRIM(DF-DISP-AMOUNT)
                END-READ
@@ -763,6 +767,7 @@
            DISPLAY " "
            DISPLAY "Press any key to continue..."
            ACCEPT OMITTED
+
            PERFORM CLEAR-SCREEN
            PERFORM VIEW-PRODUCT-DETAILS-MENU.
 
