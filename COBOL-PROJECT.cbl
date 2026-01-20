@@ -496,7 +496,8 @@
       *    CHECKS IF STOCK IS INSUFFICIENT
            IF I-SOLD-UNITS > P-STOCK
                PERFORM CLEAR-SCREEN
-               DISPLAY "Insufficient stock! Available: " P-STOCK
+               PERFORM INITIALIZATION
+               DISPLAY "Insufficient stock! Available: " DF-PSTOCK
                DISPLAY " "
                PERFORM SHOW-VALIDATION-ERROR
                IF USER-CANCELLED
@@ -801,9 +802,10 @@
 
       *    DISPLAY DASHBOARD - STOCK, INITIALIZATION, TERMINATION
        DISPLAY-DASHBOARD.
-           PERFORM INITIALIZATION
-           PERFORM CALCULATE-DASHBOARD
            
+           PERFORM CALCULATE-DASHBOARD
+           PERFORM INITIALIZATION
+
            DISPLAY "=================================================="
            DISPLAY "                DASHBOARD SUMMARY"
            DISPLAY "=================================================="
