@@ -658,6 +658,8 @@
                PERFORM VIEW-PRODUCT-DETAILS-MENU
            END-IF
 
+           PERFORM CALCULATE-DASHBOARD
+           PERFORM INITIALIZATION
            PERFORM CALCULATE-PRODUCT-REVENUE
 
            DISPLAY "=================================================="
@@ -715,6 +717,10 @@
  
       *    VIEW ALL PRODUCT DETAILS*    VIEW ALL PRODUCT DETAILS
        VIEW-ALL-PRODUCTS.
+           PERFORM CALCULATE-DASHBOARD
+           PERFORM INITIALIZATION
+           PERFORM CALCULATE-PRODUCT-REVENUE
+           
            DISPLAY "=================================================="
            DISPLAY "          ALL PRODUCTS DETAILED REPORT"
            DISPLAY "=================================================="
@@ -802,9 +808,9 @@
 
       *    DISPLAY DASHBOARD - STOCK, INITIALIZATION, TERMINATION
        DISPLAY-DASHBOARD.
-           
            PERFORM CALCULATE-DASHBOARD
            PERFORM INITIALIZATION
+           PERFORM CALCULATE-PRODUCT-REVENUE
 
            DISPLAY "=================================================="
            DISPLAY "                DASHBOARD SUMMARY"
